@@ -18,4 +18,4 @@ The sample C++ code is part of a not yet complete robot hobby project. But
 it could still be helpful for anyone who wants to tackle the same problem.
 
 WARNING: This code is not throughly tested and it is provided as is. Use it
-at your risk.
+at your own risk.

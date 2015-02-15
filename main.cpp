@@ -24,7 +24,7 @@ int main(void)
 	//
 	// TODO: Add timeout here. (eg. 100-200 msec)
 	// Actual parallax ping))) response is max 18.5 msecs, but total time
-	// will vary due to possible linux scheduling delays.
+	// will vary due to linux scheduling delays.
 	do
 	{
 		uint64_t result = 0;
