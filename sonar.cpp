@@ -108,7 +108,7 @@ int Sonar::initialize()
     {
     	if (errno)
             ret = errno;
-	    else
+        else
             ret = -1;
     }
     if (ret)
@@ -135,7 +135,6 @@ int Sonar::initialize()
     ret = prussdrv_exec_program(PRU_NUM, BINARY_NAME);
     if (ret)
     	goto error;
-
     return 0;
 
     error:
@@ -146,7 +145,7 @@ int Sonar::initialize()
 uint32_t Sonar::get_trx()
 {
     while (++m_trx == REQUEST_EXIT);
-	return m_trx;	
+    return m_trx;	
 }
 
 void Sonar::shutdown()
