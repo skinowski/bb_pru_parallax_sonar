@@ -1,9 +1,15 @@
 
 
+#
+# AM335x PRU Package Paths
+#
 PRU_INC=/home/tceylan/bbb/git/am335x_pru_package/pru_sw/app_loader/include
 PRU_LIB=/home/tceylan/bbb/git/am335x_pru_package/pru_sw/app_loader/lib
 PRU_PASM=/home/tceylan/bbb/git/am335x_pru_package/pru_sw/utils/pasm
 
+#
+# Cross compile (Sample for Ubuntu)
+#
 NAME=sample
 CPP=arm-linux-gnueabihf-g++-4.6
 CPPFLAGS=-g -O2 -MMD -fno-exceptions -fno-rtti -I$(PRU_INC)
