@@ -1,0 +1,24 @@
+
+#ifndef SONAR_CONSTANTS_H__
+#define SONAR_CONSTANTS_H__
+
+// p9-30 INPUT  pr1_pru0_pru_r31_2  0x198
+// p9-31 OUTPUT pr1_pru0_pru_r30_0  0x190
+
+#define RESULT_OK       0x00000001
+#define RESULT_TIMEOUT  0x00000002
+#define RESULT_SHUTDOWN 0x00000003
+#define RESULT_NONE     0x00000000
+
+#define REQUEST_EXIT    0x00000000
+
+// 20 nanoseconds measurement units
+// Measured total time is (measurement * RESULT_UNITS_NSECS)
+#define RESULT_UNITS_NSECS 0x00000014
+
+// PRU memory indexes
+#define ADDR_REQUEST_ID_IDX 		0x00000000
+#define ADDR_RESPONSE_IDX   		0x00000001
+#define ADDR_RESPONSE_STATUS_IDX 	0x00000002
+
+#endif
