@@ -19,3 +19,7 @@ it could still be helpful for anyone who wants to tackle the same problem.
 
 WARNING: This code is not throughly tested and it is provided as is. Use it
 at your own risk.
+
+For rationale, see my blog post:
+
+http://tolgaceylan.tumblr.com/post/108720255534/first-experiences-with-beaglebone-black-hard-real
