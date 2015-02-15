@@ -23,7 +23,7 @@ public:
 
 	int trigger();
 	int fetch_result(uint64_t &distance_cm);
-	
+
 	void set_temperature(float temp);
 
 private:
@@ -37,14 +37,14 @@ private:
 	int clear_event();
 
 private:
-	unsigned int *m_addr;
-	int m_fd;
-	float m_temperature;
-	uint32_t m_trx;
-	bool m_pending;
-	bool m_is_pru_init;
-    bool m_is_pru_enabled;
-    bool m_is_pru_int_enabled;
+	unsigned int 	*m_addr;
+	int 			m_fd;
+	float 			m_temperature;
+	uint32_t 		m_trx;
+	bool 			m_pending;
+	bool 			m_is_pru_init;
+	bool 			m_is_pru_enabled;
+	bool 			m_is_pru_int_enabled;
 };
 
 } // namespace robo

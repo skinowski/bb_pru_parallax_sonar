@@ -34,20 +34,20 @@ static uint64_t soundspeed_usec2cm(uint64_t usec, float temp)
 }
 
 #define HANDLE_EINTR(x) ({                   \
-  typeof(x) _result;                         \
-  do                                         \
-    _result = (x);                           \
-  while (_result == -1 && errno == EINTR);   \
-  _result;                                   \
+    typeof(x) _result;                       \
+    do                                       \
+        _result = (x);                       \
+    while (_result == -1 && errno == EINTR); \
+    _result;                                 \
 })
 
 
 Sonar::Sonar()
 	:
-	m_addr(0),
-	m_fd(-1),
-	m_temperature(20.0f), // room temp in C
-	m_trx(0),
+    m_addr(0),
+    m_fd(-1),
+    m_temperature(20.0f), // room temp in C
+    m_trx(0),
     m_pending(false),
     m_is_pru_init(false),
     m_is_pru_enabled(false),
@@ -57,12 +57,12 @@ Sonar::Sonar()
 
 Sonar::~Sonar()
 {
-	shutdown();
+    shutdown();
 }
 
 void Sonar::set_temperature(float temp)
 {
-	m_temperature = temp;
+    m_temperature = temp;
 }
 
 int Sonar::initialize()
@@ -94,9 +94,9 @@ int Sonar::initialize()
 
     // clear out any events
     if (PRU_NUM == 0)
-	    prussdrv_pru_clear_event(PRU_EVTOUT_0, PRU0_ARM_INTERRUPT);
+        prussdrv_pru_clear_event(PRU_EVTOUT_0, PRU0_ARM_INTERRUPT);
     else
-	    prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
+        prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
 
 	// fetch the fd for polling
     if (PRU_NUM == 0)
@@ -107,9 +107,9 @@ int Sonar::initialize()
     if (m_fd == -1)
     {
     	if (errno)
-	    	ret = errno;
+            ret = errno;
 	    else
-	    	ret = -1;
+            ret = -1;
     }
     if (ret)
     	goto error;
@@ -136,11 +136,11 @@ int Sonar::initialize()
     if (ret)
     	goto error;
 
-	return 0;
+    return 0;
 
-	error:
-		shutdown();
-	return ret;
+    error:
+        shutdown();
+    return ret;
 }
 
 uint32_t Sonar::get_trx()
@@ -172,9 +172,9 @@ void Sonar::shutdown()
 
     if (m_fd != -1)
     {
-	    HANDLE_EINTR(::close(m_fd));
-	    m_fd = -1;
-	}
+        HANDLE_EINTR(::close(m_fd));
+        m_fd = -1;
+    }
 
     m_pending = false;
     m_addr = 0;
@@ -199,11 +199,11 @@ int Sonar::trigger()
     if (ret)
         return ret;
 
-	// simple, just update the pru memory with new trx
+    // simple, just update the pru memory with new trx
     const uint32_t trx = get_trx();
     m_addr[ADDR_REQUEST_ID_IDX] = trx;
     m_pending = true;
-	return ret;
+    return ret;
 }
 
 uint64_t Sonar::get_cm_distance(uint64_t nsecs) const
@@ -226,7 +226,7 @@ int Sonar::fetch_result(uint64_t &distance_cm)
     fd.fd = m_fd;
     fd.events = POLLPRI | POLLIN;
 
-	int ret = HANDLE_EINTR(::poll(&fd, 1, 0));
+    int ret = HANDLE_EINTR(::poll(&fd, 1, 0));
     err = errno;
 
     if (ret == 0)
