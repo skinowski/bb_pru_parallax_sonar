@@ -1,0 +1,47 @@
+/dts-v1/;
+
+/ {
+	compatible = "ti,beaglebone", "ti,beaglebone-black";
+	part-number = "BB-BONE-PRU";
+	version = "00A0";
+	exclusive-use = 
+		"P9.30",
+		"P9.31",
+		"pruss";
+
+	fragment@0 {
+		target = <0xdeadbeef>;
+
+		__overlay__ {
+
+			pinmux_pru_pru_pins {
+				pinctrl-single,pins = <0x198 0x26 0x190 0x05>;
+				linux,phandle = <0x1>;
+				phandle = <0x1>;
+			};
+		};
+	};
+
+	fragment@2 {
+		target = <0xdeadbeef>;
+
+		__overlay__ {
+			status = "okay";
+			pinctrl-names = "default";
+			pinctrl-0 = <0x1>;
+		};
+	};
+
+	__symbols__ {
+		pru_pru_pins = "/fragment@0/__overlay__/pinmux_pru_pru_pins";
+	};
+
+	__fixups__ {
+		am33xx_pinmux = "/fragment@0:target:0";
+		pruss = "/fragment@2:target:0";
+	};
+
+	__local_fixups__ {
+		fixup = "/fragment@2/__overlay__:pinctrl-0:0";
+	};
+};
