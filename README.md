@@ -17,8 +17,8 @@ http://processors.wiki.ti.com/index.php/Programmable_Realtime_Unit_Subsystem
 For device tree blob (dtb), copy the dts file over to BeagleBone Black and
 run the device tree compiler:
 
-cd /lib/firmware
-dtc -b 0 -@ -I dts -O dtb -o ./BB-BONE-PRU-00A0.dtbo ./BB-BONE-PRU-00A0.dtbo.dts
+	cd /lib/firmware
+	dtc -b 0 -@ -I dts -O dtb -o ./BB-BONE-PRU-00A0.dtbo ./BB-BONE-PRU-00A0.dtbo.dts
 
 The sample C++ code is part of a not yet complete robot hobby project. But
 it could still be helpful for anyone who wants to tackle the same problem.
