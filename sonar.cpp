@@ -17,8 +17,6 @@
 
 #include "sonar_common.hp"
 
-namespace robo {
-
 #define BINARY_NAME "./sonar.bin"
 
 // Which PRU are we running on?
@@ -53,6 +51,7 @@ static uint64_t soundspeed_usec2cm(uint64_t usec, float temp)
     _result;                                 \
 })
 
+namespace robo {
 
 Sonar::Sonar()
 	:
@@ -86,19 +85,19 @@ int Sonar::initialize()
     tpruss_intc_initdata pruss_intc_initdata = PRUSS_INTC_INITDATA;
     void *pruDataMem = 0;
 
-    /* Initialize the PRU */
+    // Initialize the PRU
     ret = prussdrv_init();
     if (ret)
     	goto error;
     m_is_pru_init = true;
 
-    /* Open PRU Interrupt */
+    // Open PRU Interrupt
     ret = prussdrv_open(PRU_EVTOUT_0);
     if (ret)
     	goto error;
     m_is_pru_enabled = true;
 
-    /* Get the interrupt initialized */
+    // Get the interrupt initialized
     ret = prussdrv_pruintc_init(&pruss_intc_initdata);
     if (ret)
     	goto error;
@@ -107,16 +106,10 @@ int Sonar::initialize()
     // clear out any events
     prussdrv_pru_clear_event(PRU_EVTOUT, PRU_ARM_INTERRUPT);
 
-	// fetch the fd for polling
+    // fetch the fd for polling
     m_fd = prussdrv_pru_event_fd(PRU_EVTOUT);
-
     if (m_fd == -1)
-    {
-    	if (errno)
-            ret = errno;
-        else
-            ret = -1;
-    }
+        ret = errno ? errno : -1;
     if (ret)
     	goto error;
 
@@ -133,7 +126,7 @@ int Sonar::initialize()
     m_addr[ADDR_RESPONSE_IDX]           = 0x00;
     m_addr[ADDR_RESPONSE_STATUS_IDX]    = 0x00;
 
-    /* Execute example on PRU */
+    // Execute example on PRU
     ret = prussdrv_exec_program(PRU_NUM, BINARY_NAME);
     if (ret)
     	goto error;
@@ -160,7 +153,7 @@ void Sonar::shutdown()
 
     if (m_is_pru_enabled)
     {
-        /* Disable PRU and close memory mapping*/
+        // Disable PRU and close memory mapping
         prussdrv_pru_disable(PRU_NUM);
         m_is_pru_enabled = false;
     }
