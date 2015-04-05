@@ -33,6 +33,14 @@
     #define PRUSS_PRU_DATARAM   PRUSS0_PRU1_DATARAM
 #endif
 
+#define HANDLE_EINTR(x) ({                   \
+    typeof(x) _result;                       \
+    do                                       \
+        _result = (x);                       \
+    while (_result == -1 && errno == EINTR); \
+    _result;                                 \
+})
+
 static uint64_t soundspeed_usec2cm(uint64_t usec, float temp)
 {
     // The speed of sound is 340 m/s or 29 microseconds per centimeter.
@@ -42,14 +50,6 @@ static uint64_t soundspeed_usec2cm(uint64_t usec, float temp)
     const float speed = 331.5f + (0.6f * temp); // m/sec
     return usec / (10000.0f / speed);
 }
-
-#define HANDLE_EINTR(x) ({                   \
-    typeof(x) _result;                       \
-    do                                       \
-        _result = (x);                       \
-    while (_result == -1 && errno == EINTR); \
-    _result;                                 \
-})
 
 namespace robo {
 
@@ -88,19 +88,19 @@ int Sonar::initialize()
     // Initialize the PRU
     ret = prussdrv_init();
     if (ret)
-    	goto error;
+    	goto out;
     m_is_pru_init = true;
 
     // Open PRU Interrupt
     ret = prussdrv_open(PRU_EVTOUT_0);
     if (ret)
-    	goto error;
+    	goto out;
     m_is_pru_enabled = true;
 
     // Get the interrupt initialized
     ret = prussdrv_pruintc_init(&pruss_intc_initdata);
     if (ret)
-    	goto error;
+    	goto out;
     m_is_pru_int_enabled = true;
 
     // clear out any events
@@ -111,12 +111,12 @@ int Sonar::initialize()
     if (m_fd == -1)
         ret = errno ? errno : -1;
     if (ret)
-    	goto error;
+    	goto out;
 
     // Initialize pointer to PRU data memory
     ret = prussdrv_map_prumem(PRUSS_PRU_DATARAM, &pruDataMem);
     if (ret)
-    	goto error;
+    	goto out;
 
     m_addr = static_cast<unsigned int*>(pruDataMem);
     m_pending = false;
@@ -128,11 +128,9 @@ int Sonar::initialize()
 
     // Execute example on PRU
     ret = prussdrv_exec_program(PRU_NUM, BINARY_NAME);
-    if (ret)
-    	goto error;
-    return 0;
 
-    error:
+    out:
+    if (ret)
         shutdown();
     return ret;
 }
@@ -225,21 +223,20 @@ int Sonar::fetch_result(uint64_t &distance_cm)
 
     unsigned int event_count = 0;
     ret = HANDLE_EINTR(::read(m_fd, &event_count, sizeof(int)));
-    err = errno;
+    if (ret < 0)
+        return errno;
     if (ret != sizeof(event_count))
         return EFAULT;
 
     const uint32_t status = m_addr[ADDR_RESPONSE_STATUS_IDX];
-    if (status == RESULT_OK)
-    {
-        // nsecs
-        const uint64_t reading = m_addr[ADDR_RESPONSE_IDX] * RESULT_UNITS_NSECS;
-        distance_cm = get_cm_distance(reading);
-        clear_event();
-        return 0;
-    }
-    
-    return err ? err : EFAULT;
+    if (status != RESULT_OK)
+        return EFAULT;
+
+    // nsecs
+    const uint64_t reading = m_addr[ADDR_RESPONSE_IDX] * RESULT_UNITS_NSECS;
+    distance_cm = get_cm_distance(reading);
+    clear_event();
+    return 0;
 }
 
 } // namespace robo
