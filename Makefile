@@ -22,6 +22,8 @@ SOURCES := $(wildcard *.cpp)
 
 OBJECTS := $(SOURCES:%.cpp=$(OBJDIR)/%.o)
 
+all: $(OBJDIR)/$(NAME) $(OBJDIR)/sonar.bin
+
 $(OBJDIR)/%.o : %.cpp
 	$(CPP) $(CPPFLAGS) -c -o $@ $<
 
@@ -36,7 +38,6 @@ $(OBJDIR)/sonar.bin : sonar.p sonar.hp sonar_common.hp
 	mv -f sonar.bin $(OBJDIR)/sonar.bin
 	chmod gou+rx $(OBJDIR)/sonar.bin
 
-all: $(OBJDIR)/$(NAME) $(OBJDIR)/sonar.bin
 
 clean :
 	rm -f $(OBJDIR)/*.o $(OBJDIR)/*.d $(OBJDIR)/$(NAME) $(OBJDIR)/sonar.bin
