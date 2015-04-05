@@ -235,8 +235,7 @@ int Sonar::fetch_result(uint64_t &distance_cm)
     // nsecs
     const uint64_t reading = m_addr[ADDR_RESPONSE_IDX] * RESULT_UNITS_NSECS;
     distance_cm = get_cm_distance(reading);
-    clear_event();
-    return 0;
+    return clear_event();
 }
 
 } // namespace robo
