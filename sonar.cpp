@@ -146,30 +146,22 @@ uint32_t Sonar::get_trx()
 void Sonar::shutdown()
 {
     if (m_is_pru_int_enabled)
-    {
         clear_event();
-        m_is_pru_int_enabled = false;
-    }
 
+    // Disable PRU and close memory mapping
     if (m_is_pru_enabled)
-    {
-        // Disable PRU and close memory mapping
         prussdrv_pru_disable(PRU_NUM);
-        m_is_pru_enabled = false;
-    }
 
     if (m_is_pru_init)
-    {
         prussdrv_exit();
-        m_is_pru_init = false;
-    }
 
     if (m_fd != -1)
-    {
         HANDLE_EINTR(::close(m_fd));
-        m_fd = -1;
-    }
 
+    m_is_pru_int_enabled = false;
+    m_is_pru_enabled = false;
+    m_is_pru_init = false;
+    m_fd = -1;
     m_pending = false;
     m_addr = 0;
 }
