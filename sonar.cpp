@@ -19,9 +19,21 @@
 
 namespace robo {
 
-// Which PRU are we running on?
-#define PRU_NUM 0
 #define BINARY_NAME "./sonar.bin"
+
+// Which PRU are we running on?
+#define PRU_NUM                 0
+
+// PRU Specific Settings
+#if PRU_NUM == 0
+    #define PRU_EVTOUT          PRU_EVTOUT_0
+    #define PRU_ARM_INTERRUPT   PRU0_ARM_INTERRUPT
+    #define PRUSS_PRU_DATARAM   PRUSS0_PRU0_DATARAM
+#elif PRU_NUM == 1
+    #define PRU_EVTOUT          PRU_EVTOUT_1
+    #define PRU_ARM_INTERRUPT   PRU1_ARM_INTERRUPT
+    #define PRUSS_PRU_DATARAM   PRUSS0_PRU1_DATARAM
+#endif
 
 static uint64_t soundspeed_usec2cm(uint64_t usec, float temp)
 {
@@ -93,16 +105,10 @@ int Sonar::initialize()
     m_is_pru_int_enabled = true;
 
     // clear out any events
-    if (PRU_NUM == 0)
-        prussdrv_pru_clear_event(PRU_EVTOUT_0, PRU0_ARM_INTERRUPT);
-    else
-        prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
+    prussdrv_pru_clear_event(PRU_EVTOUT, PRU_ARM_INTERRUPT);
 
 	// fetch the fd for polling
-    if (PRU_NUM == 0)
-    	m_fd = prussdrv_pru_event_fd(PRU_EVTOUT_0);
-    else
-    	m_fd = prussdrv_pru_event_fd(PRU_EVTOUT_1);
+    m_fd = prussdrv_pru_event_fd(PRU_EVTOUT);
 
     if (m_fd == -1)
     {
@@ -115,11 +121,7 @@ int Sonar::initialize()
     	goto error;
 
     // Initialize pointer to PRU data memory
-    if (PRU_NUM == 0)
-      ret = prussdrv_map_prumem(PRUSS0_PRU0_DATARAM, &pruDataMem);
-    else
-      ret = prussdrv_map_prumem(PRUSS0_PRU1_DATARAM, &pruDataMem);
-
+    ret = prussdrv_map_prumem(PRUSS_PRU_DATARAM, &pruDataMem);
     if (ret)
     	goto error;
 
@@ -181,11 +183,7 @@ void Sonar::shutdown()
 
 int Sonar::clear_event()
 {
-    int ret = 0;
-    if (PRU_NUM == 0)
-        ret = prussdrv_pru_clear_event(PRU_EVTOUT_0, PRU0_ARM_INTERRUPT);
-    else
-        ret = prussdrv_pru_clear_event(PRU_EVTOUT_1, PRU1_ARM_INTERRUPT);
+    const int ret = prussdrv_pru_clear_event(PRU_EVTOUT, PRU_ARM_INTERRUPT);
     return ret;
 }
 
