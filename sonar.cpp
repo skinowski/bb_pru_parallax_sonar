@@ -56,7 +56,7 @@ namespace robo {
 
 Sonar::Sonar()
 	:
-    m_addr(0),
+    m_pru_data_mem(0),
     m_fd(-1),
     m_temperature(20.0f), // room temp in C
     m_trx(0),
@@ -119,13 +119,13 @@ int Sonar::initialize()
     if (ret)
     	goto out;
 
-    m_addr = static_cast<unsigned int*>(pruDataMem);
+    m_pru_data_mem = static_cast<unsigned int*>(pruDataMem);
     m_is_IO_pending = false;
 
     // Flush the values in the PRU data memory locations
-    m_addr[ADDR_REQUEST_ID_IDX]         = get_trx();
-    m_addr[ADDR_RESPONSE_IDX]           = 0x00;
-    m_addr[ADDR_RESPONSE_STATUS_IDX]    = 0x00;
+    m_pru_data_mem[ADDR_REQUEST_ID_IDX]         = get_trx();
+    m_pru_data_mem[ADDR_RESPONSE_IDX]           = 0x00;
+    m_pru_data_mem[ADDR_RESPONSE_STATUS_IDX]    = 0x00;
 
     // Execute example on PRU
     ret = prussdrv_exec_program(PRU_NUM, BINARY_NAME);
@@ -162,7 +162,7 @@ void Sonar::shutdown()
     m_is_pru_init = false;
     m_fd = -1;
     m_is_IO_pending = false;
-    m_addr = 0;
+    m_pru_data_mem = 0;
 }
 
 int Sonar::clear_event()
@@ -184,7 +184,7 @@ int Sonar::trigger()
 
     // simple, just update the pru memory with new trx
     const uint32_t trx = get_trx();
-    m_addr[ADDR_REQUEST_ID_IDX] = trx;
+    m_pru_data_mem[ADDR_REQUEST_ID_IDX] = trx;
     m_is_IO_pending = true;
     return ret;
 }
@@ -233,12 +233,12 @@ int Sonar::fetch_result(uint64_t &distance_cm)
     if (ret != sizeof(event_count))
         return EFAULT;
 
-    const uint32_t status = m_addr[ADDR_RESPONSE_STATUS_IDX];
+    const uint32_t status = m_pru_data_mem[ADDR_RESPONSE_STATUS_IDX];
     if (status != RESULT_OK)
         return EFAULT;
 
     // nsecs
-    const uint64_t reading = m_addr[ADDR_RESPONSE_IDX] * RESULT_UNITS_NSECS;
+    const uint64_t reading = m_pru_data_mem[ADDR_RESPONSE_IDX] * RESULT_UNITS_NSECS;
     distance_cm = get_cm_distance(reading);
     return clear_event();
 }

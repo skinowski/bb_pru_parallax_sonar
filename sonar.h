@@ -37,7 +37,7 @@ private:
     int clear_event();
 
 private:
-    unsigned int    *m_addr;
+    unsigned int    *m_pru_data_mem;
     int             m_fd;
     float           m_temperature;
     uint32_t        m_trx;
