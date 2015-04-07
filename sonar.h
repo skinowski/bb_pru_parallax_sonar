@@ -41,7 +41,7 @@ private:
     int             m_fd;
     float           m_temperature;
     uint32_t        m_trx;
-    bool            m_pending;
+    bool            m_is_IO_pending;
     bool            m_is_pru_init;
     bool            m_is_pru_enabled;
     bool            m_is_pru_int_enabled;

@@ -5,7 +5,6 @@
  *      Author: tceylan
  */
 
-#include "sonar.h"
 
 #include <unistd.h>
 #include <poll.h>
@@ -15,11 +14,13 @@
 #include <prussdrv.h>
 #include <pruss_intc_mapping.h>
 
+#include "sonar.h"
 #include "sonar_common.hp"
 
-#define BINARY_NAME "./sonar.bin"
+// For sample code purposes, hardcoded
+// binary name and PRU number
 
-// Which PRU are we running on?
+#define BINARY_NAME "./sonar.bin"
 #define PRU_NUM                 0
 
 // PRU Specific Settings
@@ -59,7 +60,7 @@ Sonar::Sonar()
     m_fd(-1),
     m_temperature(20.0f), // room temp in C
     m_trx(0),
-    m_pending(false),
+    m_is_IO_pending(false),
     m_is_pru_init(false),
     m_is_pru_enabled(false),
     m_is_pru_int_enabled(false)
@@ -119,7 +120,7 @@ int Sonar::initialize()
     	goto out;
 
     m_addr = static_cast<unsigned int*>(pruDataMem);
-    m_pending = false;
+    m_is_IO_pending = false;
 
     // Flush the values in the PRU data memory locations
     m_addr[ADDR_REQUEST_ID_IDX]         = get_trx();
@@ -160,20 +161,22 @@ void Sonar::shutdown()
     m_is_pru_enabled = false;
     m_is_pru_init = false;
     m_fd = -1;
-    m_pending = false;
+    m_is_IO_pending = false;
     m_addr = 0;
 }
 
 int Sonar::clear_event()
 {
-    const int ret = prussdrv_pru_clear_event(PRU_EVTOUT, PRU_ARM_INTERRUPT);
-    return ret;
+    return prussdrv_pru_clear_event(PRU_EVTOUT, PRU_ARM_INTERRUPT);
 }
 
 int Sonar::trigger()
 {
-    if (m_pending)
+    if (m_is_IO_pending)
         return EBUSY;
+
+    if (!m_is_pru_init)
+        return EFAULT;
 
     int ret = clear_event();
     if (ret)
@@ -182,7 +185,7 @@ int Sonar::trigger()
     // simple, just update the pru memory with new trx
     const uint32_t trx = get_trx();
     m_addr[ADDR_REQUEST_ID_IDX] = trx;
-    m_pending = true;
+    m_is_IO_pending = true;
     return ret;
 }
 
@@ -194,14 +197,16 @@ uint64_t Sonar::get_cm_distance(uint64_t nsecs) const
 
 int Sonar::fetch_result(uint64_t &distance_cm)
 {
-    if (!m_pending)
+    if (!m_is_IO_pending)
         return EINVAL;
+
+    if (!m_is_pru_init)
+        return EFAULT;
 
     int err = 0;
 
-    // TODO: depending on overall robot codebase, try to factor out file
-    // descriptor polling to master loop where these are polled in a set
-    // not individually like below...
+    // For actual code, this polling logic should reside in a project
+    // wide polling layer as opposed to the implicit poll() call below.
     struct pollfd fd;
     fd.fd = m_fd;
     fd.events = POLLPRI | POLLIN;
@@ -219,7 +224,7 @@ int Sonar::fetch_result(uint64_t &distance_cm)
 
     // we are no longer pending even if the ::read() fails below... 
     // no need to stay and retry reads...
-    m_pending = false;
+    m_is_IO_pending = false;
 
     unsigned int event_count = 0;
     ret = HANDLE_EINTR(::read(m_fd, &event_count, sizeof(int)));
